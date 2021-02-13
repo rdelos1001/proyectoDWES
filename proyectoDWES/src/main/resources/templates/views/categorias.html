@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Proyecto DWES</title>	
+		<link rel="stylesheet" type="text/css" href="/css/tabla.css">
+		<link rel="stylesheet" type="text/css" href="/css/cabecera.css">
+		<link rel="stylesheet" type="text/css" href="/css/botones.css">
+		<link rel="icon" type="image/svg" href="/iconos/briefcase.svg">		
+		<script src="/js/categorias.js"></script>
+	</head>
+	<body>
+		<div th:include="views/cabecera.html" th:remove="tag"></div>		
+	
+	<h1>Productos</h1>
+		
+		<form id="categoriaForm" method="get" action="buscarProductos">
+		<label>Elige una categoria: </label>
+			<select name="nombre" onchange="document.getElementById('categoriaForm').submit();" style="margin-bottom:1em">
+				<option value="todo">---Selecciona una opción---</option>
+				<option th:attrappend="selected=${categoriaSelected == categoria.nombre}?@{true}" th:each="categoria: ${categorias}" th:value="${categoria.nombre}" th:text="${categoria.nombre}"
+				>$categoria</option>
+			</select>
+		</form>
+		
+		
+		<table>
+			<thead>		
+				<tr>
+					<th>Nombre del producto</th>
+					<th>Descripción</th>
+					<th>Peso</th>
+					<th>Precio</th>
+					<th>Stock</th>
+					<th>Unidades</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="producto,i: ${productos}">
+					<td th:text="${producto.nombre}">$Nombre</td>
+					<td th:text="${producto.descripcion}">$Descripción</td>
+					<td th:text="@{${producto.peso}+'kg'}">$Peso</td>
+					<td th:text="@{${producto.precio}+'€'}">$Precio</td>
+					<td th:text="${producto.stock}">$Stock</td>
+					<td><input type="number" name="cantidad" min=0 th:max="${producto.stock}"></td>
+					<td><button  th:attr="onclick=@{'anadirCarrito('+${producto.codProd}+','+${i.index}+')'}" class="btn-addCarrito"><label style="position:relative; bottom:4px;">Añadir al carrito </label>
+					<img width="16" height="16" src="/iconos/market.svg">
+					</button></td>				
+				</tr>
+			</tbody>
+		</table>
+		<a href="/carrito">
+			<input type="button" value="Ver carrito" class="btn btn--comprar"/>
+		</a>
+	</body>
+</html>

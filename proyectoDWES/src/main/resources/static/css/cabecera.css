@@ -1,0 +1,9 @@
+.cabecera{
+	background-color:lightblue;
+	margin-top:0;
+}
+.cabecera input{
+	background-color:#736EF5;
+	border-color:blue;
+	color:white;
+}

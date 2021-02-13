@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Proyecto DWES</title>
+		<link rel="stylesheet" type="text/css" href="/css/index.css">
+		<link rel="icon" type="image/svg" href="/iconos/briefcase.svg">
+		
+	</head>
+	<body>
+		<div class="loginBox">
+			<h1>Login</h1>
+			<form method="post" action="categorias" th:object="${restaurantLogin}">
+				<div>
+					<label>Usuario: </label>
+					<input type="text" th:field="${restaurantLogin.correo}"><br>				
+				</div>
+				<div>
+					<label>Contraseña: </label>
+					<input type="password" th:field="${restaurantLogin.clave}"><br>
+					<div class="errorText" th:if="${mensajeError}" th:text="${mensajeError}">Error</div>
+				</div>
+				<div>
+					<input type="submit" value="Entrar">				
+				</div>
+			</form>	
+		</div>
+	</body>
+</html>

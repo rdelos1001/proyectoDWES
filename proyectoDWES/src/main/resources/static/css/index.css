@@ -1,0 +1,47 @@
+.loginBox{
+	display:flex;
+	flex-direction:column;
+	margin:auto;
+	padding:1em;
+	width:fit-content;
+	border-radius:10px;
+	border:1px solid black;
+}
+.loginBox>form>*{
+	padding-top:1em;
+}
+.loginBox>h1{
+	width:fit-content;
+}
+
+.loginBox input[type="submit"]{
+	background-color:blue;
+	color:white;
+	border:0;
+	padding:0.5em;
+}
+
+.errorText{
+	margin-top:0.5em;
+	border-radius:5px;
+	padding:10px;
+	background-color:red;
+	color:yellow;
+	font-weight:700;
+}
+
+.loginBox input[type="text"]:focus, input[type="password"]:focus{
+	outline-color:lightblue;
+}
+
+.loginBox label{
+	width:81px;
+}
+
+.loginBox div:nth-of-type(3){
+	text-align:center;
+}
+
+.loginBox>form{
+	width:fit-content;
+}

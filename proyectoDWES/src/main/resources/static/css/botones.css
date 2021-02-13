@@ -1,0 +1,39 @@
+.btn{
+	padding:0;
+	margin:0;	
+	background-color:#1A61FF;
+	color:white;
+	border-color:blue;
+	padding:0.7em 1.2em;
+	cursor:pointer;
+}
+.btn-addCarrito{
+	padding:0;
+	width:fit-content;
+	padding:0.1em 0.3em;
+	height:20px;
+	background-color:#42B255;
+	color:white;
+	border-color:green;
+	border-radius:5px;
+}
+.btn-lessCarrito{
+	padding:0;
+	border-radius:5px;
+	width:20px;
+	height:20px;
+	background-color:tomato;
+	color:white;
+	border-color:red;
+	cursor:pointer;
+}
+.btn--comprar{
+	background-color:#3AE32B;
+	color:black;
+	border-color:green;
+}
+.btn-cancelar{
+	background-color:#908E9E;
+	color:white;
+	border-color: #48474F;
+}

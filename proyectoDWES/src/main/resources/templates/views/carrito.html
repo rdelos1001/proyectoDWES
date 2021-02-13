@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Carrito</title>
+		<link rel="stylesheet" type="text/css" href="/css/cabecera.css">
+		<link rel="stylesheet" type="text/css" href="/css/tabla.css">		
+		<link rel="stylesheet" type="text/css" href="/css/botones.css">
+		<script src="/js/carrito.js"></script>
+		<link rel="icon" type="image/svg" href="/iconos/briefcase.svg">
+		
+	</head>
+	<body>
+		<div th:include="views/cabecera.html" th:remove="tag"></div>		
+		<h1>Carrito</h1>
+		<div th:if="${productos.size}>0">
+			<form method="post" id="formCarrito" action="/modificarCarrito">
+				<input type="hidden" id="cantidades" name="productosCant">
+				<input type="hidden" id="idProductos" name="idProductos">			
+				<table>
+					<thead>		
+						<tr>
+							<th>Nombre del producto</th>
+							<th>Descripción</th>
+							<th>Peso</th>
+							<th>Precio</th>
+							<th>Unidades</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="producto,i: ${productos}">
+							<td th:text="${producto.key.nombre}">$Nombre</td>
+							<td th:text="${producto.key.descripcion}">$Descripción</td>
+							<td th:text="@{${producto.key.peso}+'kg'}">$Peso</td>
+							<td th:text="@{${producto.key.precio}+'€'}">$Precio</td>
+							<td th:text="${producto.value}">$cantidad</td>
+							<td>
+								<input th:attr="onclick=@{'anadirUnidad('+${i.index}+',1)'}" type="button" class="btn btn-addCarrito" value="+">
+								<input th:attr="onclick=@{'anadirUnidad('+${i.index}+',-1)'}" type="button" class="btn btn-lessCarrito" value="-">
+								<!-- <button th:attr="onclick=@{'eliminarProducto('+${i.index}+')'}"class="btn btn-lessCarrito"><img src="/iconos/trash.svg"></button>-->
+							</td>
+							<td th:text="${producto.key.codProd}" style="display:none">$codProd</td>
+						</tr>
+						<tr>
+							<td>Total</td>
+							<td id="total" colspan="5" style="text-align:right; font-weight:700;">$total</td>
+						</tr>
+					</tbody>
+				</table>
+				<input type="button" onclick="guardarCambios()" class="btn" value="Guardar cambios">
+				<a href="categorias"><input type="button" class="btn btn-cancelar" value="Cancelar cambios"></a><br><br>
+			</form>
+		<button onclick="comprar()" class="btn btn--comprar">Comprar<img width="16" height="16" src="/iconos/market.svg"></button>
+		</div>
+		<h3 th:if="${productos.size}<=0">No hay elementos en carrito</h3>
+		
+		<h1>Pedidos anteriores</h1>
+		<div>
+			<ul>
+				<li th:each="pedido: ${pedidos}">
+					<p style="font-weight:700">Fecha: <span style="font-weight:100" th:text="${pedido.fecha}"></span> </p>
+					<p style="font-weight:700">Importe: <span style="font-weight:100" th:text="@{${pedido.importe}+'€'}"></span> </p>
+					
+				</li>
+			</ul>
+			
+		
+		</div>	
+	<script>
+		var precioTotal=0;
+		
+		for(var i=1; i<document.getElementsByTagName('tr').length-1;i++){
+			var precioStr=document.getElementsByTagName('tr')[i].getElementsByTagName("td")[3].textContent;
+			precioTotal+= Number(precioStr.split("€")[0])*Number(document.getElementsByTagName('tr')[i].getElementsByTagName("td")[4].textContent);
+		}
+		console.log(precioTotal);
+		document.getElementById('total').textContent=precioTotal+"€";
+	</script>
+	</body>
+</html>

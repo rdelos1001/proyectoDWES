@@ -1,0 +1,32 @@
+table>thead{
+	background-color:black;
+	color:white;
+}
+table>thead>tr>th{
+	padding:0;
+}
+
+tbody td:nth-of-type(6){
+	text-align:center;
+}
+
+tbody td:nth-of-type(3), td:nth-of-type(4),td:nth-of-type(5),td:nth-of-type(7){
+	text-align:center;
+}
+tbody td{
+	border:0;
+}
+table input[type="number"]{
+	width:90%;
+	margin:auto;
+}
+
+
+table{
+	width:100%;
+ 	border-collapse: collapse;
+	
+}
+table>tbody>tr:nth-of-type(even){
+	background-color:lightgray;
+}
