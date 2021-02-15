@@ -17,13 +17,14 @@ import com.example.proyectoDWES.Entity.PedidosProductos;
 import com.example.proyectoDWES.Entity.Productos;
 import com.example.proyectoDWES.Entity.Restaurantes;
 import com.example.proyectoDWES.Repository.CategoriasRepository;
+import com.example.proyectoDWES.Repository.PedidosProductosRepository;
 import com.example.proyectoDWES.Repository.PedidosRepository;
 import com.example.proyectoDWES.Repository.ProductosRepository;
+import com.example.proyectoDWES.Service.MailService;
 import com.example.proyectoDWES.Service.PedidosProductosService;
 import com.example.proyectoDWES.Service.PedidosService;
 import com.example.proyectoDWES.Service.ProductosService;
 import com.example.proyectoDWES.Service.RestaurantesService;
-import com.example.proyectoDWES.Service.SendMailService;
 
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
@@ -32,9 +33,13 @@ import org.springframework.ui.ModelMap;
 public class ApplicationController {
 
 	private Restaurantes restauranteLogeado=null;
+	private String error="";
 	
 	@Autowired
-	private SendMailService sendMailService;
+	private PedidosProductosRepository pedProdrepository;
+	
+	@Autowired
+	private MailService mailService;
 	
 	@Autowired
 	private RestaurantesService restauranteservice;
@@ -62,20 +67,22 @@ public class ApplicationController {
 		model.addAttribute("restaurantLogin",new Restaurantes());
 		return "index";
 	}
-	
+	@GetMapping("/error")
+	public String error() {
+		System.out.println("-------------ERROR-------------");
+		return "views/error404";
+	}
 	@GetMapping("/login")
 	public String login()
 	{
 		return "redirect:/";
-	}
-	
+	}	
 	@GetMapping("/cerrarSesion")
 	public String cerrarSesion()
 	{
-		this.restauranteLogeado=null;
+		this.restauranteLogeado=new Restaurantes();
 		return "redirect:/";
 	}
-	
 	@GetMapping("/categorias")
 	public String categorias(ModelMap model) {
 		if(this.restauranteLogeado==null) {
@@ -96,30 +103,24 @@ public class ApplicationController {
 		return "index";
 	}
 	
-	
 	@GetMapping("/carrito")
 	public String mostrarCarrito(ModelMap model) {
 		if(this.restauranteLogeado==null) {
 			return "redirect:/";
 		}
 		ArrayList<Productos>productos=new ArrayList<Productos>();
-		HashMap<Productos,Integer> prodCant= new HashMap<Productos,Integer>();
+		HashMap<Productos,Double> prodCant= new HashMap<Productos,Double>();
 		
-		ArrayList<Pedidos>pedidosNoEnv=pedidosrepository.findAllByRestauranteAndEnviado(this.restauranteLogeado,false);
-		if(pedidosNoEnv.isEmpty()) {
-			Pedidos nuevoCarrito = new Pedidos(new Date(),false,0,null,new ArrayList<PedidosProductos>());
-			pedidosrepository.save(nuevoCarrito);
-			nuevoCarrito.setRestaurante(this.restauranteLogeado);
-			pedidosrepository.save(nuevoCarrito);
-			pedidosNoEnv.add(nuevoCarrito);
-		}
-		productos= pedidosservice.getProductos(pedidosNoEnv.get(0));
+		Pedidos carrito=pedidosservice.getCarrito(this.restauranteLogeado);
+
+		productos= pedidosservice.getProductos(carrito);
 		for (int i = 0; i < productos.size(); i++) {
-			prodCant.put(pedidosNoEnv.get(0).getPedidosProductos().get(i).getProductos(), (int)pedidosNoEnv.get(0).getPedidosProductos().get(i).getUnidades());		
+			prodCant.put(carrito.getPedidosProductos().get(i).getProductos(), carrito.getPedidosProductos().get(i).getUnidades());		
 		}
 		
 		ArrayList<Pedidos>pedidosEnv =pedidosrepository.findAllByRestauranteAndEnviado(this.restauranteLogeado,true);
 
+		model.addAttribute("error",this.error);
 		model.addAttribute("pedidos",pedidosEnv);
 		model.addAttribute("productos",prodCant);
 		model.addAttribute("restaurantLogin",this.restauranteLogeado);		
@@ -127,26 +128,41 @@ public class ApplicationController {
 	}
 	
 	@GetMapping("/comprar")
-	public String comprar(@ModelAttribute("productos")String productosCant) {
-		String aux[]=productosCant.split(";");
-		double total=0;
+	public String comprar() {
+		Pedidos carrito = this.pedidosservice.getCarrito(this.restauranteLogeado);		
+		Pedidos compra= new Pedidos(new Date(),true,0,carrito.getRestaurante(),new ArrayList<PedidosProductos>());
+		System.out.println("Carrito: "+carrito.toString());
 		
-		for (int i = 0; i < aux.length; i++) {
-			String productos[]= aux[i].split(",");
-			if(productos[0].equals("total")) {
-				total=Double.parseDouble(productos[1]);
+		for (PedidosProductos pedidoProducto : carrito.getPedidosProductos()) {
+			
+			System.out.println("Pedido producto actual"+pedidoProducto.toString());
+	
+			 //Si las unidades que desea comprar el usuario es mayor que el stock se reducen las cantidades que hay en el carrito
+			if(pedidoProducto.getUnidades() > pedidoProducto.getProductos().getStock()) {
+				if(pedidoProducto.getProductos().getStock()>0) {
+					pedidoProducto.setUnidades(pedidoProducto.getUnidades()-pedidoProducto.getProductos().getStock());
+					
+					//El producto se mueve al pedido de compra que se va a realizar
+					compra.getPedidosProductos().add(pedidoProducto);
+					this.pedidosProductosService.actualizarPedidoProducto(pedidoProducto);
+					this.productosService.actualizarExistencias(pedidoProducto.getProductos().getCodProd(), 0);								
+				}else {
+					this.error="No puedes comprar el producto "+pedidoProducto.getProductos().getNombre()+" por que no hay stock disponible";
+				}
+			//Si las unidades que desea comprar el usuario es menor que el stock se reducen las cantidades que hay en el carrito a 0 para luego eliminarlas
 			}else {
-				this.productosService.actualizarExistencias(Integer.parseInt(productos[0]), Integer.parseInt(productos[1]));				
+				compra.getPedidosProductos().add(pedidoProducto);
+				this.productosService.actualizarExistencias(pedidoProducto.getProductos().getCodProd(), pedidoProducto.getProductos().getStock()-pedidoProducto.getUnidades());
+				this.pedProdrepository.delete(pedidoProducto);
 			}
+			
+			
+			
+			System.out.println("-----FIN PEDIDO PRODUCTO ACTUAL-------");
 		}
+		this.pedidosrepository.save(compra);
 		
-		ArrayList<Pedidos>pedidosNoEnv=pedidosrepository.findAllByRestauranteAndEnviado(this.restauranteLogeado,false);
-		pedidosNoEnv.get(0).setFecha(new Date());		
-		pedidosNoEnv.get(0).setEnviado(true);
-		pedidosNoEnv.get(0).setImporte(total);
-		pedidosrepository.save(pedidosNoEnv.get(0));
-		sendMail();
-		return "redirect:/categorias";
+		return "redirect:/carrito";
 	}
 	
 	@GetMapping("/anadirProductos")
@@ -154,9 +170,9 @@ public class ApplicationController {
 		if(cantidad>0) {
 			
 			Productos producto=productosrepository.findById(id).get();
-			ArrayList<Pedidos>pedidosNoEnv=pedidosrepository.findAllByRestauranteAndEnviado(this.restauranteLogeado,false);
+			Pedidos carrito=pedidosservice.getCarrito(this.restauranteLogeado);
 			
-			pedidosProductosService.anadirProducto(pedidosNoEnv.get(0),producto,cantidad);
+			pedidosProductosService.anadirProducto(carrito,producto,cantidad);
 		}
 		
 		model=addAllDefaultAttributes(model);
@@ -177,32 +193,43 @@ public class ApplicationController {
 		model.addAttribute("categoriaSelected",nombreCat);
 		return "views/categorias";
 	}
-	
 	@PostMapping("/modificarCarrito")
 	public String modificarCarrito(@ModelAttribute("productosCant")String prodCant,@ModelAttribute("idProductos")String idProductos){
-		ArrayList<Pedidos>pedidosNoEnv=pedidosrepository.findAllByRestauranteAndEnviado(this.restauranteLogeado,false);
-
+		Pedidos carrito=pedidosservice.getCarrito(restauranteLogeado);
 		String[]idsProd= idProductos.split(",");
 		String[]prodsCant= prodCant.split(",");
 		
 		for(int i=0; i<idsProd.length;i++) {
-			PedidosProductos pedProd=pedidosProductosService.getPedprodPorIdProd(Integer.parseInt(idsProd[i]), pedidosNoEnv.get(0));
-			pedProd.setUnidades(Integer.parseInt(prodsCant[i]));
-			if(Integer.parseInt(prodsCant[i])<=0) {
+			PedidosProductos pedProd=pedidosProductosService.getPedprodPorIdProd(Integer.parseInt(idsProd[i]), carrito);
+			pedProd.setUnidades(Double.parseDouble(prodsCant[i]));
+			if(Double.parseDouble(prodsCant[i])<=0) {
 				pedidosProductosService.quitarPedidoProducto(pedProd);
 			}else{
-				pedidosProductosService.actualizarProducto(pedProd);				
+				pedidosProductosService.actualizarPedidoProducto(pedProd);				
 			}
 			
 		}
 		return "redirect:/categorias";
 	}
 		
-	private void sendMail() {
+	private void sendMail(Pedidos pedido) {
 		String to ="rauldelossantoscabrera@iessoterohernandez.es";
 		//to=this.restauranteLogeado.getCorreo();
-		String message="Se ha realizado la compra de ";
-		sendMailService.sendMail("notificaciones.app.98@gmail.com", to, "Compra", message);
+		String message="";
+		message+="USUARIO:"+this.restauranteLogeado.getCorreo()+"\n";
+		message="Se ha realizado la compra de \n";
+		
+		for (int i = 0; i < pedido.getPedidosProductos().size(); i++) {
+			message+=pedido.getPedidosProductos().get(i).getUnidades()+" unidades de ";
+			message+=pedido.getPedidosProductos().get(i).getProductos().getNombre()+"\n";
+		}
+		message+="IMPORTE TOTAL: "+pedido.getImporte()+"€";
+		try {
+			mailService.send("notificaciones.app.98@gmail.com", to, "PROYECTO DWES Compra", message);
+			System.out.println("Enviado correo a "+to);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	private ModelMap addAllDefaultAttributes(ModelMap model) {
 		model.addAttribute("restaurantLogin",this.restauranteLogeado);
@@ -210,4 +237,5 @@ public class ApplicationController {
 		model.addAttribute("productos",productosrepository.findAll());
 		return model;
 	}
+		
 }

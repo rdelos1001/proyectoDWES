@@ -1,0 +1,21 @@
+.pedidos li{
+	display:flex;
+	flex-direction:column;
+	margin-bottom:1em;
+	border-radius:5px;
+	background-color:antiquewhite;
+	width:fit-content;
+	padding:0.5em 0.7em;
+	margin:0.5em;	
+	transition:0.5s;
+}
+.pedidos ul{
+	display:flex;
+	flex-wrap:wrap;
+	list-style:none;
+}
+.pedidos li:hover{
+	background: blueviolet;
+	color:white;
+	transform:scale(1.1) translateY(-10%);
+}

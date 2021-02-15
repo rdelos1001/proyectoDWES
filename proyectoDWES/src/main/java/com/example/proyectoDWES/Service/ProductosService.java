@@ -4,6 +4,6 @@ import com.example.proyectoDWES.Entity.Productos;
 
 public interface ProductosService {
 
-	public Productos actualizarExistencias(int codProd, int cantidad);
+	public Productos actualizarExistencias(int codProd, double cantidad);
 	
 }

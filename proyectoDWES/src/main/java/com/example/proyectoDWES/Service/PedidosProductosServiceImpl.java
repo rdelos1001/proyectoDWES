@@ -24,7 +24,7 @@ public class PedidosProductosServiceImpl implements PedidosProductosService {
 	@Override
 	public void anadirProducto(Pedidos pedido, Productos producto,double cantidad) {
 		
-		if(repository.findByProductosAndPedido(producto,pedido).size()>=1) {
+		if(!repository.findByProductosAndPedido(producto,pedido).isEmpty()) {
 			cantidad+=repository.findByProductosAndPedido(producto,pedido).get(0).getUnidades();
 		}
 			
@@ -49,17 +49,35 @@ public class PedidosProductosServiceImpl implements PedidosProductosService {
 	@Override
 	public PedidosProductos getPedprodPorIdProd(int idProd,Pedidos pedido) {
 
-		Productos producto=prodRepository.findById(idProd).get();
-		ArrayList<PedidosProductos> pedProdproductos= repository.findByProductosAndPedido(producto, pedido);
-		
-		return pedProdproductos.get(0);
+		if(prodRepository.findById(idProd).isPresent()) {
+			Productos producto=prodRepository.findById(idProd).get();
+			ArrayList<PedidosProductos> pedProdproductos= repository.findByProductosAndPedido(producto, pedido);
+			return pedProdproductos.get(0);
+		}
+		return null;
 	}
 
 
 
 	@Override
-	public void actualizarProducto(PedidosProductos pedProd) {
-		repository.save(pedProd);
+	public void actualizarPedidoProducto(PedidosProductos pedProd) {
+		try {
+			if(repository.findById(pedProd.getCodPedProd()).isPresent()) {
+				if(pedProd.getUnidades()>0) {
+					PedidosProductos pedProdGuardar =repository.findById(pedProd.getCodPedProd()).get();
+					pedProdGuardar.setPedido(pedProd.getPedido());
+					pedProdGuardar.setUnidades(pedProd.getUnidades());
+					pedProdGuardar.setProductos(pedProd.getProductos());
+					repository.save(pedProdGuardar);					
+				}else {
+					repository.delete(repository.findById(pedProd.getCodPedProd()).get());
+				}
+			}else {
+				throw new Exception("Pedido Producto no encontrado");
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 

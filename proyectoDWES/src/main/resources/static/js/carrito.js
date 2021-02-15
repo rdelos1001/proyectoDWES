@@ -42,7 +42,7 @@ function comprar(){
 		productos+= document.getElementsByTagName('tr')[i].getElementsByTagName("td")[4].textContent+";";
 	}
 
-	productos+="total,"+document.getElementsByTagName('tbody')[0].lastElementChild.lastElementChild.textContent.split('€')[0];
+	productos+="-1,"+document.getElementsByTagName('tbody')[0].lastElementChild.lastElementChild.textContent.split('€')[0];
 	window.location="/comprar?productos="+productos;
 }
 

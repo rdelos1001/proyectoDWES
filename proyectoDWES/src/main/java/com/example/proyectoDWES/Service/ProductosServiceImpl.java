@@ -13,10 +13,19 @@ public class ProductosServiceImpl implements ProductosService {
 	ProductosRepository repository;
 	
 	@Override
-	public Productos actualizarExistencias(int codProd, int cantidad) {
-		Productos prod =repository.findById(codProd).get();
-		prod.setStock(prod.getStock()-cantidad);
-		repository.save(prod);
+	public Productos actualizarExistencias(int codProd, double cantidad){
+		Productos prod =null;
+		try {
+			if(repository.findById(codProd).isPresent()) {
+				prod =repository.findById(codProd).get();
+				prod.setStock(cantidad);
+				repository.save(prod);			
+			}else {
+				throw  new Exception("Código de producto incorrecto");
+			}			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 		return prod;
 	}
 }

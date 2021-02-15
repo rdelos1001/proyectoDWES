@@ -32,7 +32,7 @@ public class Productos {
 	private double precio;
 	
 	@Column
-	private int stock;
+	private double stock;
 	
 	@ManyToOne
 	@JoinColumn(name="categoria")
@@ -73,11 +73,11 @@ public class Productos {
 		this.peso = peso;
 	}
 
-	public int getStock() {
+	public double getStock() {
 		return stock;
 	}
 
-	public void setStock(int stock) {
+	public void setStock(double stock) {
 		this.stock = stock;
 	}
 

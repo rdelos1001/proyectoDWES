@@ -18,6 +18,12 @@ public class PedidosProductos implements Serializable{
 	 */
 	private static final long serialVersionUID = 5506852841205641322L;
 
+	@Override
+	public String toString() {
+		return "PedidosProductos [CodPedProd=" + CodPedProd + ", pedido=" + pedido.getCodPed() + ", productos=" + productos.getCodProd()
+				+ ", unidades=" + unidades + "]";
+	}
+
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     private int CodPedProd;

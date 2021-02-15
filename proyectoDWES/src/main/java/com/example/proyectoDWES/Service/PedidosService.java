@@ -4,9 +4,11 @@ import java.util.ArrayList;
 
 import com.example.proyectoDWES.Entity.Pedidos;
 import com.example.proyectoDWES.Entity.Productos;
+import com.example.proyectoDWES.Entity.Restaurantes;
 
 public interface PedidosService {
 	public ArrayList<Productos> getProductos(Pedidos pedido);
 
-	public void anadirProducto(Pedidos pedidos, Productos producto);
+	public Pedidos getCarrito(Restaurantes restaurante);
+	public void actualizarPedido(Pedidos pedido);
 }

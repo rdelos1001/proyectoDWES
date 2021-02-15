@@ -7,6 +7,9 @@
 		<link rel="stylesheet" type="text/css" href="/css/cabecera.css">
 		<link rel="stylesheet" type="text/css" href="/css/tabla.css">		
 		<link rel="stylesheet" type="text/css" href="/css/botones.css">
+		<link rel="stylesheet" type="text/css" href="/css/error.css">
+		<link rel="stylesheet" type="text/css" href="/css/carrito.css">
+		
 		<script src="/js/carrito.js"></script>
 		<link rel="icon" type="image/svg" href="/iconos/briefcase.svg">
 		
@@ -52,20 +55,19 @@
 				<input type="button" onclick="guardarCambios()" class="btn" value="Guardar cambios">
 				<a href="categorias"><input type="button" class="btn btn-cancelar" value="Cancelar cambios"></a><br><br>
 			</form>
-		<button onclick="comprar()" class="btn btn--comprar">Comprar<img width="16" height="16" src="/iconos/market.svg"></button>
+		<a href="comprar"><button class="btn btn--comprar">Comprar<img width="16" height="16" src="/iconos/market.svg"></button></a>
 		</div>
 		<h3 th:if="${productos.size}<=0">No hay elementos en carrito</h3>
-		
+		<h3 class="errorText" th:if="${error.length}>0" th:text="${error}"></h3>
 		<h1>Pedidos anteriores</h1>
-		<div>
-			<ul>
+		<div class="pedidos">
+			<ul th:if="${pedidos.size}>0">
 				<li th:each="pedido: ${pedidos}">
 					<p style="font-weight:700">Fecha: <span style="font-weight:100" th:text="${pedido.fecha}"></span> </p>
 					<p style="font-weight:700">Importe: <span style="font-weight:100" th:text="@{${pedido.importe}+'€'}"></span> </p>
-					
 				</li>
 			</ul>
-			
+			<h3 th:if="${pedidos.size}<=0">No hay pedidos ya realizados</h3>
 		
 		</div>	
 	<script>

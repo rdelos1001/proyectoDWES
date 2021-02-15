@@ -21,15 +21,6 @@
 	padding:0.5em;
 }
 
-.errorText{
-	margin-top:0.5em;
-	border-radius:5px;
-	padding:10px;
-	background-color:red;
-	color:yellow;
-	font-weight:700;
-}
-
 .loginBox input[type="text"]:focus, input[type="password"]:focus{
 	outline-color:lightblue;
 }
