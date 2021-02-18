@@ -42,7 +42,6 @@
 							<td>
 								<input th:attr="onclick=@{'anadirUnidad('+${i.index}+',1)'}" type="button" class="btn btn-addCarrito" value="+">
 								<input th:attr="onclick=@{'anadirUnidad('+${i.index}+',-1)'}" type="button" class="btn btn-lessCarrito" value="-">
-								<!-- <button th:attr="onclick=@{'eliminarProducto('+${i.index}+')'}"class="btn btn-lessCarrito"><img src="/iconos/trash.svg"></button>-->
 							</td>
 							<td th:text="${producto.key.codProd}" style="display:none">$codProd</td>
 						</tr>
@@ -58,7 +57,7 @@
 		<a href="comprar"><button class="btn btn--comprar">Comprar<img width="16" height="16" src="/iconos/market.svg"></button></a>
 		</div>
 		<h3 th:if="${productos.size}<=0">No hay elementos en carrito</h3>
-		<h3 class="errorText" th:if="${error.length}>0" th:text="${error}"></h3>
+		<div class="errorText" th:each="error: ${errores}" th:text="${error}">Error</div>
 		<h1>Pedidos anteriores</h1>
 		<div class="pedidos">
 			<ul th:if="${pedidos.size}>0">

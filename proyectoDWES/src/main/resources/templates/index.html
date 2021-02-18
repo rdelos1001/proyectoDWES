@@ -20,7 +20,7 @@
 				<div>
 					<label>Contraseña: </label>
 					<input type="password" th:field="${restaurantLogin.clave}"><br>
-					<div class="errorText" th:if="${mensajeError}" th:text="${mensajeError}">Error</div>
+					<div class="errorText" th:each="error: ${errores}" th:text="${error}">Error</div>
 				</div>
 				<div>
 					<input type="submit" value="Entrar">				

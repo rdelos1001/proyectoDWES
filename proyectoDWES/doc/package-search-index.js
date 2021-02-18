@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"com.example.proyectoDWES"},{"l":"com.example.proyectoDWES.controller"},{"l":"com.example.proyectoDWES.Entity"},{"l":"com.example.proyectoDWES.Repository"},{"l":"com.example.proyectoDWES.Service"}]

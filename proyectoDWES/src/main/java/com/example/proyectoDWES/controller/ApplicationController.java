@@ -11,131 +11,183 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import com.example.proyectoDWES.Entity.Categorias;
-import com.example.proyectoDWES.Entity.Pedidos;
-import com.example.proyectoDWES.Entity.PedidosProductos;
-import com.example.proyectoDWES.Entity.Productos;
-import com.example.proyectoDWES.Entity.Restaurantes;
-import com.example.proyectoDWES.Repository.CategoriasRepository;
-import com.example.proyectoDWES.Repository.PedidosProductosRepository;
-import com.example.proyectoDWES.Repository.PedidosRepository;
-import com.example.proyectoDWES.Repository.ProductosRepository;
+import com.example.proyectoDWES.Entity.Categoria;
+import com.example.proyectoDWES.Entity.Pedido;
+import com.example.proyectoDWES.Entity.PedidosProducto;
+import com.example.proyectoDWES.Entity.Producto;
+import com.example.proyectoDWES.Entity.Restaurante;
+import com.example.proyectoDWES.Service.CategoriaService;
 import com.example.proyectoDWES.Service.MailService;
-import com.example.proyectoDWES.Service.PedidosProductosService;
-import com.example.proyectoDWES.Service.PedidosService;
-import com.example.proyectoDWES.Service.ProductosService;
-import com.example.proyectoDWES.Service.RestaurantesService;
+import com.example.proyectoDWES.Service.PedidoProductoService;
+import com.example.proyectoDWES.Service.PedidoService;
+import com.example.proyectoDWES.Service.ProductoService;
+import com.example.proyectoDWES.Service.RestauranteService;
 
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 
+/**
+ * @author Ra&uacute;l De los santos Cabrera
+ * @version 1.0.0
+ * */
 @Controller
 public class ApplicationController {
 
-	private Restaurantes restauranteLogeado=null;
-	private String error="";
+	/**
+	 * Restaurante actualmente logeado
+	 * */
+	private Restaurante restauranteLogeado=null;
 	
-	@Autowired
-	private PedidosProductosRepository pedProdrepository;
+	/**
+	 * Mensajes de error
+	 * */
+	private ArrayList<String> errores=new ArrayList<String>();
 	
+	
+	/**
+	 * Servicio para enviar el email de compra
+	 * */
 	@Autowired
 	private MailService mailService;
 	
+	
+	/**
+	 * Servicio para gestionar los restaurantes
+	 * */
 	@Autowired
-	private RestaurantesService restauranteservice;
+	private RestauranteService restauranteservice;
 	
 	@Autowired
-	private CategoriasRepository categoriasrepository;
+	private CategoriaService catService;
 	
-	@Autowired
-	private ProductosRepository productosrepository;
 		
+	/**
+	 * Servicio para gestionar los pedidos
+	 * */	
 	@Autowired
-	private PedidosService pedidosservice;
+	private PedidoService pedidosservice;
 	
+	
+	/**
+	 * Servicio para gestionar la tabla pedidosProductos
+	 * */
 	@Autowired
-	private PedidosRepository pedidosrepository;
+	private PedidoProductoService pedidosProductosService;
 	
+	/**
+	 * Servicio para gestionar la tabla Productos
+	 * */
 	@Autowired
-	private PedidosProductosService pedidosProductosService;
+	private ProductoService productosService;
 	
-	@Autowired
-	private ProductosService productosService;
 	
+	/**
+	 * Mapeo para mostrar la vista del ra&iacute;z
+	 * @param model Modelo recibido por par&aacute;metros
+	 * @return index Devuelve la vista index
+	 * */
 	@GetMapping("/")
 	public String index(Model model) {
-		model.addAttribute("restaurantLogin",new Restaurantes());
+		model.addAttribute("restaurantLogin",new Restaurante());
 		return "index";
 	}
-	@GetMapping("/error")
-	public String error() {
-		System.out.println("-------------ERROR-------------");
-		return "views/error404";
-	}
+
+	/**
+	 * Mapeo de '/login' la cual redireciona al raiz
+	 * @return redirecciona a raiz*/
 	@GetMapping("/login")
 	public String login()
 	{
 		return "redirect:/";
 	}	
+	
+	/**
+	 * Mapeo de '/cerrarSesion' el cual deslogea al restaurante y redirecciona al inicio
+	 * @return redirecciona a raiz*/
 	@GetMapping("/cerrarSesion")
 	public String cerrarSesion()
 	{
-		this.restauranteLogeado=new Restaurantes();
+		this.restauranteLogeado=null;
 		return "redirect:/";
 	}
+	
+	/**
+	 * Mapeo de '/categorias' para mostrar la vista de todas las categorias mediante el m&eacute;todo GET. Requiere que el restaurante esté logeado si no lo est&aacute; redirecciona al inicio,
+	 * adem&aacute;s añade todos los datos por defecto.
+	 * @param model ModelMap que se mostrar&aacute; en la vista
+	 * @return Devuelve la vista de ra&iacute;z o categorias dependiendo si el restaurante est&aacute; o no logeado
+	 * */
 	@GetMapping("/categorias")
 	public String categorias(ModelMap model) {
 		if(this.restauranteLogeado==null) {
 			return "redirect:/";
 		}
+		this.errores.clear();
 		model=addAllDefaultAttributes(model);
 		return "views/categorias";
 	}
-	
+	/**
+	 * Mapeo de '/categorias' para mostrar la vista de todas las categorias mediante el m&eacute;todo POST.
+	 * @param restaurante Es el restaurante que se est&aacute; intentando logear
+	 * @param model Modelo que se mostrar&aacute; en la vista
+	 * @return Devuelve la vista index
+	 * */
 	@PostMapping("/categorias")
-	public String categorias(@ModelAttribute("restaurantLogin")Restaurantes restaurante, ModelMap model) {
+	public String categorias(@ModelAttribute("restaurantLogin")Restaurante restaurante, ModelMap model) {
 		if(restauranteservice.logear(restaurante)) {
 			this.restauranteLogeado=restauranteservice.getRestauranteByCorreoAndClave(restaurante.getCorreo(),restaurante.getClave());
 			model=addAllDefaultAttributes(model);
+			System.out.println(pedidosservice.getCarrito(this.restauranteLogeado).toString() );
+			this.errores.clear();
 			return "views/categorias";
 		}
-		model.addAttribute("mensajeError","Usuario o contraseña incorrectos");
+		anadirError("Usuario o contrase&ntilde;a incorrectos");
+		model.addAttribute("errores",this.errores);
 		return "index";
 	}
 	
+	/**
+	 * Mapeo '/carrito' para mostrar el carrito con todos los productos y sus cantidades
+	 * @param model recibe el modelo que se mostrar&aacute;
+	 * @return Devuelve la vista del carrito
+	 */
 	@GetMapping("/carrito")
 	public String mostrarCarrito(ModelMap model) {
 		if(this.restauranteLogeado==null) {
 			return "redirect:/";
 		}
-		ArrayList<Productos>productos=new ArrayList<Productos>();
-		HashMap<Productos,Double> prodCant= new HashMap<Productos,Double>();
+		ArrayList<Producto>productos=new ArrayList<Producto>();
+		HashMap<Producto,Double> prodCant= new HashMap<Producto,Double>();
 		
-		Pedidos carrito=pedidosservice.getCarrito(this.restauranteLogeado);
+		Pedido carrito=pedidosservice.getCarrito(this.restauranteLogeado);
 
 		productos= pedidosservice.getProductos(carrito);
 		for (int i = 0; i < productos.size(); i++) {
 			prodCant.put(carrito.getPedidosProductos().get(i).getProductos(), carrito.getPedidosProductos().get(i).getUnidades());		
 		}
 		
-		ArrayList<Pedidos>pedidosEnv =pedidosrepository.findAllByRestauranteAndEnviado(this.restauranteLogeado,true);
+		ArrayList<Pedido>pedidosEnv =pedidosservice.findAllByRestauranteAndEnviado(this.restauranteLogeado,true);
 
-		model.addAttribute("error",this.error);
+		model.addAttribute("errores",this.errores);
 		model.addAttribute("pedidos",pedidosEnv);
 		model.addAttribute("productos",prodCant);
 		model.addAttribute("restaurantLogin",this.restauranteLogeado);		
 		return "views/carrito";
 	}
-	
+	/**
+	 * Mapeo de '/comprar' para que reduzca el stock de las unidades que se desean comprar en la medida de lo posible
+	 * @return Redirecciona a '/carrito'
+	 * */
 	@GetMapping("/comprar")
 	public String comprar() {
-		Pedidos carrito = this.pedidosservice.getCarrito(this.restauranteLogeado);		
-		Pedidos compra= new Pedidos(new Date(),true,0,carrito.getRestaurante(),new ArrayList<PedidosProductos>());
-		System.out.println("Carrito: "+carrito.toString());
 		
-		for (PedidosProductos pedidoProducto : carrito.getPedidosProductos()) {
+		Pedido carrito = this.pedidosservice.getCarrito(this.restauranteLogeado);		
+		Pedido compra= new Pedido(new Date(),true,0,carrito.getRestaurante(),new ArrayList<PedidosProducto>());
+		double importeTotal=0;
+
+		
+		for (PedidosProducto pedidoProducto : carrito.getPedidosProductos()) {
 			
-			System.out.println("Pedido producto actual"+pedidoProducto.toString());
 	
 			 //Si las unidades que desea comprar el usuario es mayor que el stock se reducen las cantidades que hay en el carrito
 			if(pedidoProducto.getUnidades() > pedidoProducto.getProductos().getStock()) {
@@ -146,31 +198,46 @@ public class ApplicationController {
 					compra.getPedidosProductos().add(pedidoProducto);
 					this.pedidosProductosService.actualizarPedidoProducto(pedidoProducto);
 					this.productosService.actualizarExistencias(pedidoProducto.getProductos().getCodProd(), 0);								
+					for(PedidosProducto pedProd: compra.getPedidosProductos()) {
+						importeTotal+=pedProd.getUnidades()*pedProd.getProductos().getPrecio();
+					}
+					compra.setImporte(importeTotal);
+					this.pedidosservice.save(compra);
+					sendMail(compra);
 				}else {
-					this.error="No puedes comprar el producto "+pedidoProducto.getProductos().getNombre()+" por que no hay stock disponible";
+					anadirError("No puedes comprar el producto "+pedidoProducto.getProductos().getNombre()+" por que no hay stock disponible");
 				}
 			//Si las unidades que desea comprar el usuario es menor que el stock se reducen las cantidades que hay en el carrito a 0 para luego eliminarlas
 			}else {
 				compra.getPedidosProductos().add(pedidoProducto);
 				this.productosService.actualizarExistencias(pedidoProducto.getProductos().getCodProd(), pedidoProducto.getProductos().getStock()-pedidoProducto.getUnidades());
-				this.pedProdrepository.delete(pedidoProducto);
-			}
-			
-			
-			
-			System.out.println("-----FIN PEDIDO PRODUCTO ACTUAL-------");
+				this.pedidosProductosService.quitarPedidoProducto(pedidoProducto);
+				
+				for(PedidosProducto pedProd: compra.getPedidosProductos()) {
+					importeTotal+=pedProd.getUnidades()*pedProd.getProductos().getPrecio();
+				}
+			}			
 		}
-		this.pedidosrepository.save(compra);
-		
+		compra.setImporte(importeTotal);
+		System.out.println("Compra.toString: "+compra.toString());
+		this.pedidosservice.save(compra);
+		sendMail(compra);
 		return "redirect:/carrito";
 	}
 	
+	/**
+	 * Mapeo de '/anadirProductos' si la cantidad que se desea a&ntilde;adir es mayor a 0 se añade al carrito
+	 * @param id Identificador del producto a añadir al carrito
+	 * @param cantidad Cantidad del producto que se desea a&ntilde;adir al carrito
+	 * @param model Modelo que se enviar&aacute; a la vista
+	 * @return Redirecciona a la '/categorias'
+	 * */
 	@GetMapping("/anadirProductos")
 	public String anadirProducto(@Param("id")int id,@Param("cantidad")int cantidad, ModelMap model) {	
 		if(cantidad>0) {
 			
-			Productos producto=productosrepository.findById(id).get();
-			Pedidos carrito=pedidosservice.getCarrito(this.restauranteLogeado);
+			Producto producto=productosService.findById(id);
+			Pedido carrito=pedidosservice.getCarrito(this.restauranteLogeado);
 			
 			pedidosProductosService.anadirProducto(carrito,producto,cantidad);
 		}
@@ -179,28 +246,42 @@ public class ApplicationController {
 		return "redirect:/categorias";
 	}
 	
+	/**
+	 * Mapeo de '/buscarProductos' muestra los productos en la vista de categorias en funci&oacute;n de la categoria elegida
+	 * @param nombreCat Nombre de la categoria que se quiere buscar
+	 * @param restaurante Restaurante logeado
+	 * @param model Modelo de que llegar&aacute; a la vista´
+	 * @return Devuelve la vista de categorias
+	 * */
 	@GetMapping("/buscarProductos")
-	public String buscarProductos(@ModelAttribute("nombre")String nombreCat, @ModelAttribute("restaurantLogin")Restaurantes restaurante,ModelMap model) {
-		ArrayList<Productos> productos=null;
-		Categorias categoria= categoriasrepository.findByNombre(nombreCat);
+	public String buscarProductos(@ModelAttribute("nombre")String nombreCat, @ModelAttribute("restaurantLogin")Restaurante restaurante,ModelMap model) {
+		ArrayList<Producto> productos=null;
+		Categoria categoria= this.catService.findByNombre(nombreCat);
 
 		model=addAllDefaultAttributes(model);
 
 		if(!nombreCat.equals("todo")) {
-			productos=  productosrepository.findAllByCategoria(categoria);			
+			productos=  productosService.findAllByCategoria(categoria);			
 			model.addAttribute("productos",productos);
 		}
 		model.addAttribute("categoriaSelected",nombreCat);
 		return "views/categorias";
 	}
+	
+	/**
+	 * Mapeo de '/modificarCarrito' para modificar la cantidad de un conjunto de productos que hay en el carrito
+	 * @param prodCant nuevas cantidades de los productos
+	 * @param idProductos Identificadores de los productos
+	 * @return Redirecciona a '/categorias'
+	 * */
 	@PostMapping("/modificarCarrito")
 	public String modificarCarrito(@ModelAttribute("productosCant")String prodCant,@ModelAttribute("idProductos")String idProductos){
-		Pedidos carrito=pedidosservice.getCarrito(restauranteLogeado);
+		Pedido carrito=pedidosservice.getCarrito(restauranteLogeado);
 		String[]idsProd= idProductos.split(",");
 		String[]prodsCant= prodCant.split(",");
 		
 		for(int i=0; i<idsProd.length;i++) {
-			PedidosProductos pedProd=pedidosProductosService.getPedprodPorIdProd(Integer.parseInt(idsProd[i]), carrito);
+			PedidosProducto pedProd=pedidosProductosService.getPedprodPorIdProd(Integer.parseInt(idsProd[i]), carrito);
 			pedProd.setUnidades(Double.parseDouble(prodsCant[i]));
 			if(Double.parseDouble(prodsCant[i])<=0) {
 				pedidosProductosService.quitarPedidoProducto(pedProd);
@@ -212,9 +293,14 @@ public class ApplicationController {
 		return "redirect:/categorias";
 	}
 		
-	private void sendMail(Pedidos pedido) {
+	/**
+	 * Envia un correo al email del restaurante (modificado para que lo mande a mi correo corporativo del centro para comprobar que funciona)
+	 * @param pedido Pedido que se enviar&aacute; por email
+	 * */
+	private void sendMail(Pedido pedido) {
 		String to ="rauldelossantoscabrera@iessoterohernandez.es";
-		//to=this.restauranteLogeado.getCorreo();
+		// Para cambiar al correo del destinatario al de el restaurante solo habría que descomentar la siguiente línea
+		// to=this.restauranteLogeado.getCorreo();
 		String message="";
 		message+="USUARIO:"+this.restauranteLogeado.getCorreo()+"\n";
 		message="Se ha realizado la compra de \n";
@@ -231,11 +317,36 @@ public class ApplicationController {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * A&ntilde;ade al modelo los atributos de restauranteLogin, categorias, productos
+	 * @param model Modelo al cual se le a&ntilde;aden los atributos
+	 * @return model Modelo con los atributos ya a&ntilde;adidos
+	 * */
 	private ModelMap addAllDefaultAttributes(ModelMap model) {
 		model.addAttribute("restaurantLogin",this.restauranteLogeado);
-		model.addAttribute("categorias",categoriasrepository.findAll());
-		model.addAttribute("productos",productosrepository.findAll());
+		model.addAttribute("categorias",this.catService.findAll());
+		model.addAttribute("productos",productosService.findAll());
 		return model;
 	}
-		
+	
+	/**
+	 * A&ntilde;ade un error a la lista de errores si este no est&aacute; ya en la lista.
+	 * @param error error que se desea a&ntilde;adir
+	 * */
+	private void anadirError(String error) {
+		if(this.errores.size()<=0) {
+			this.errores.add(error);
+		}else {
+			boolean check=false;
+			for(String errorActual :this.errores) {
+				if(errorActual.equals(error)) {
+					check=true;
+				}
+			}
+			if(!check) {
+				this.errores.add(error);
+			}			
+		}
+	}
 }
