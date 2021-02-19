@@ -42,6 +42,7 @@
 							<td>
 								<input th:attr="onclick=@{'anadirUnidad('+${i.index}+',1)'}" type="button" class="btn btn-addCarrito" value="+">
 								<input th:attr="onclick=@{'anadirUnidad('+${i.index}+',-1)'}" type="button" class="btn btn-lessCarrito" value="-">
+								<input th:attr="onclick=@{'borrar('+${i.index}+')'}" type="button" class="btn btn-lessCarrito" value="x">
 							</td>
 							<td th:text="${producto.key.codProd}" style="display:none">$codProd</td>
 						</tr>

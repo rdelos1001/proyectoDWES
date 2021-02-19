@@ -28,9 +28,8 @@ function guardarCambios(){
 	document.getElementById('formCarrito').submit();
 }
 
-function eliminarProducto(index){
-	console.log("PRUEBA");
-	document.getElementsByTagName('tbody')[0].getElementsByTagName('tr')[index].getElementsByTagName('td')[4].textContent="0";
+function borrar(index){
+	document.getElementsByTagName('tbody')[0].getElementsByTagName('tr')[index].getElementsByTagName('td')[4].textContent="0"
 }
 
 function comprar(){
