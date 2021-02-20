@@ -198,9 +198,7 @@ public class ApplicationController {
 					compra.getPedidosProductos().add(pedidoProducto);
 					this.pedidosProductosService.actualizarPedidoProducto(pedidoProducto);
 					this.productosService.actualizarExistencias(pedidoProducto.getProductos().getCodProd(), 0);								
-					for(PedidosProducto pedProd: compra.getPedidosProductos()) {
-						importeTotal+=pedProd.getUnidades()*pedProd.getProductos().getPrecio();
-					}
+	
 					compra.setImporte(importeTotal);
 					this.pedidosservice.save(compra);
 					sendMail(compra);
@@ -213,11 +211,14 @@ public class ApplicationController {
 				this.productosService.actualizarExistencias(pedidoProducto.getProductos().getCodProd(), pedidoProducto.getProductos().getStock()-pedidoProducto.getUnidades());
 				this.pedidosProductosService.quitarPedidoProducto(pedidoProducto);
 				
-				for(PedidosProducto pedProd: compra.getPedidosProductos()) {
-					importeTotal+=pedProd.getUnidades()*pedProd.getProductos().getPrecio();
-				}
+				
 			}			
 		}
+		
+		for(PedidosProducto pedProd: compra.getPedidosProductos()) {
+			importeTotal+=pedProd.getUnidades()*pedProd.getProductos().getPrecio();
+		}
+		
 		compra.setImporte(importeTotal);
 		System.out.println("Compra.toString: "+compra.toString());
 		this.pedidosservice.save(compra);

@@ -1,1 +1,0 @@
-INSERT INTO restaurantes(cp,ciudad,clave,correo,direccion,pais) VALUES(41100,'Sevilla',1234,'admin@admin.com','c/Admin','España')
